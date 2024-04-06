@@ -47,3 +47,30 @@ A DataTable that contains the parsed contents of the dsv string array
 
 InvalidDataException
 If any element in `dsv` contains an odd number of doublequotes
+
+### Dsv.ToStringArr Method
+
+#### ToStringArr(DataTable)
+
+Converts a DataTable to a string array representing a DSV file
+
+```cs
+public static string[] ToStringArr(DataTable table);
+```
+
+##### Parameters
+
+`table` DataTable
+
+A DataTable of strings. The Captions of DataColumns will be considered the first row
+
+##### Returns
+
+string[]
+
+A string array where each element maps to a line from a DSV file
+
+##### Exceptions
+
+InvalidDataException
+If the first column of any row contains only doublequotes
