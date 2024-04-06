@@ -1,4 +1,5 @@
-﻿using System.Data;
+using System.Data;
+using System.Diagnostics;
 
 namespace sapphtools.ohno
 {
@@ -20,36 +21,51 @@ namespace sapphtools.ohno
             char delimiter = line.Where(c => c!='"').First();
             string[] initialSplit = line.Split(delimiter);
             string[] finalSplit;
-            List<string> finalsplit = [];
             int currentindex = 0;
             bool openquotes = false;
-            finalSplit = new string[initialSplit.Count()];
+            finalSplit = new string[initialSplit.Length];
             foreach (string item in initialSplit) {
-                if (item.Count(c => c=='"') % 2 == 1) {
+                if (item=="\"") {
+                    finalSplit[currentindex] += delimiter;
                     if (openquotes) {
                         openquotes = false;
-                    } else {
                         currentindex++;
-                        finalSplit[currentindex] = "";
+                    } else {
                         openquotes = true;
                     }
-                } else {
-                    if (!openquotes) {
-                        currentindex++;
-                    }
+                    continue;
                 }
+                if (item.Count(c => c=='"') % 2 == 1) {
+                    if (openquotes) {
+                        if (item[0]=='"') {
+                            finalSplit[currentindex] += item[1..];
+                        } else {
+                            openquotes = false;
+                            finalSplit[currentindex] += item[0..^1];
+                            currentindex++;
+                        }
+                        continue;
+                    } else {
+                        finalSplit[currentindex] += item[1..];
+                        openquotes = true;
+                        continue;
+                    }
+                } 
                 finalSplit[currentindex] += item;
+                if (!openquotes) {
+                    currentindex++;
+                }
             }
             if (openquotes)
                 throw new InvalidDataException("An odd number of quote characters were in the line");
-            Array.Resize(ref finalSplit, currentindex+1);
+            Array.Resize(ref finalSplit, currentindex);
             return finalSplit;
         }
 
         public static string[] ToStringArr(DataTable table) {
             List<string> dsv = [ArrayToDsvLine(table.Columns.OfType<DataColumn>().Select(dc => dc.Caption).ToArray<string>())];
             foreach (DataRow row in table.Rows) {
-                dsv.Add(ArrayToDsvLine((string[])row.ItemArray));
+                dsv.Add(ArrayToDsvLine(row.ItemArray.Cast<string>().ToArray<string>()));
             }
             return dsv.ToArray<string>();
         }
