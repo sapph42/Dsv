@@ -46,7 +46,7 @@ namespace sapphtools.ohno
             return finalSplit;
         }
 
-        public static string[] ToDataTable(DataTable table) {
+        public static string[] ToStringArr(DataTable table) {
             List<string> dsv = [ArrayToDsvLine(table.Columns.OfType<DataColumn>().Select(dc => dc.Caption).ToArray<string>())];
             foreach (DataRow row in table.Rows) {
                 dsv.Add(ArrayToDsvLine((string[])row.ItemArray));
