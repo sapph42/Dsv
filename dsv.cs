@@ -1,8 +1,7 @@
 using System.Data;
-using System.Diagnostics;
 
-namespace sapphtools.ohno
-{
+namespace sapphtools.ohno {
+    
     public static class Dsv {
         private static string ArrayToDsvLine (string[] row) {
             if (row[0].Count(c => c=='"')==row[0].Length)
@@ -11,7 +10,7 @@ namespace sapphtools.ohno
             for (int i=0; i < row.Length; i++) {
                 if (row[i].First()=='"' && row[i].Last()=='"')
                     continue;
-                if (row[i].Count(c => c=='"') > 0 || row[i].Count(c => c==delimiter) > 0)
+                if (row[i].Any(c => c == '"') || row[i].Any(c => c == delimiter))
                     row[i] = '"' + row[i] + '"';
             }
             return string.Join(delimiter, row);
@@ -67,35 +66,30 @@ namespace sapphtools.ohno
             foreach (DataRow row in table.Rows) {
                 dsv.Add(ArrayToDsvLine(row.ItemArray.Cast<string>().ToArray<string>()));
             }
-            return dsv.ToArray<string>();
+            return [.. dsv];
         }
 
         public static DataTable ToDataTable(string[] dsv, bool hasHeaders) {
             string[] firstRow = DsvLineToArray(dsv[0]);
-            DataColumn[] columns = new DataColumn[firstRow.Length];
-            DataTable output = new();
+            using DataTable output = new();
             if (hasHeaders) {
                 for(int i=0; i < firstRow.Length; i++) {
-                    columns[i] = new DataColumn(firstRow[i]);
+                    output.Columns.Add(new DataColumn(firstRow[i]));
                 }
-                foreach (DataColumn col in columns)
-                    output.Columns.Add(col);
             } else {
                 for(int i=0; i < firstRow.Length; i++) {
-                    columns[i] = new DataColumn($"Column{i}");
+                    output.Columns.Add(new DataColumn($"Column{i}"));
                 }
-                foreach (DataColumn col in columns)
-                    output.Columns.Add(col);
-                output.Rows.Add(firstRow);
+                _ = output.Rows.Add(firstRow);
             }
             foreach(string row in dsv[1..]) {
-                output.Rows.Add(DsvLineToArray(row));
+                _ = output.Rows.Add(DsvLineToArray(row));
             }
             return output;
         }
 
         public static DataTable ToDataTable(string dsv) {
-            return ToDataTable(new string[]{dsv}, false);
+            return ToDataTable([dsv], false);
         }
     }
 }
